@@ -1,0 +1,89 @@
+import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+
+# Step 1: Get stock price data
+stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN']  # List of 4 stocks to fetch data for
+start_date = '2000-01-01'  # Start date for data
+end_date = datetime.now().strftime('%Y-%m-%d')  # End date is set to current date
+
+# Fetch stock data using yfinance
+data = yf.download(stocks, start=start_date, end=end_date)['Close']
+
+# Step 2: Graph out each stock separately
+for stock in stocks:
+    plt.figure(figsize=(10, 6))
+    plt.plot(data.index, data[stock])
+    plt.title(stock + ' Stock Price')
+    plt.xlabel('Date')
+    plt.ylabel('Closing Price ($)')
+    plt.grid(True)
+    plt.show()
+
+# Step 3: Find points where current price deviates more than 25% of the average of the last 30 days
+window = 30  # Window size for calculating moving average
+deviation_threshold = 0.25  # Deviation threshold for identifying points of interest
+
+points_of_interest = {}
+for stock in stocks:
+    # Calculate moving average
+    rolling_avg = data[stock].rolling(window=window).mean()
+
+    # Calculate deviation from moving average
+    deviation = data[stock] - rolling_avg
+
+    # Identify points of interest where deviation is greater than threshold
+    points_of_interest[stock] = data[stock][deviation.abs() > (rolling_avg * deviation_threshold)]
+
+    # Convert points of interest to a DataFrame with corresponding dates
+    df = pd.DataFrame({'Date': points_of_interest[stock].index, 'Closing Price': points_of_interest[stock].values})
+    print(stock + ' Points of Interest:')
+    print(df)
+
+# Step 4: Plot points of interest on the graph and identify dates
+for stock in stocks:
+    plt.figure(figsize=(10, 6))
+    plt.plot(data.index, data[stock])
+    plt.scatter(points_of_interest[stock].index, points_of_interest[stock], c='r', label='Points of Interest')
+    plt.title(stock + ' Stock Price with Points of Interest')
+    plt.xlabel('Date')
+    plt.ylabel('Closing Price ($)')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+# Step 5: Create and visualize quantitative risk of each stock
+risk_score = {}
+for stock in stocks:
+    # Calculate daily returns
+    returns = data[stock].pct_change()
+
+    # Calculate risk score as standard deviation of daily returns
+    risk_score[stock] = returns.std()
+
+# Plot risk scores as a bar chart
+plt.figure(figsize=(10, 6))
+plt.bar(risk_score.keys(), risk_score.values())
+plt.title('Quantitative Risk of Each Stock')
+plt.xlabel('Stock')
+plt.ylabel('Risk Score')
+plt.grid(True)
+plt.show()
+
+# Step 6: Calculate correlation between risk score and frequency of points of interest
+correlation_data = pd.DataFrame({'Risk Score': risk_score.values(), 'Frequency of Points of Interest': [len(points_of_interest[stock]) for stock in stocks]}, index=risk_score.keys())
+correlation_matrix = correlation_data.corr()  # Calculate correlation matrix
+
+# Generate sample data (replace this with your actual correlation matrix data)
+correlation_matrix = np.random.rand(10, 10)
+
+# Plot correlation matrix as a heatmap
+plt.figure(figsize=(8, 6))
+plt.imshow(correlation_matrix, cmap='hot', interpolation='nearest')
+plt.colorbar()  # Add colorbar if desired
+plt.title('Correlation Matrix Heatmap')
+plt.xlabel('X Axis Label')
+plt.ylabel('Y Axis Label')
+plt.show()  # Show the plot
