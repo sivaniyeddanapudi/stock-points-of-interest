@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime, timedelta
 
 # Step 1: Get stock price data
-stocks = ['AAPL', 'GOOGL', 'MSFT', 'AMZN']  # List of 4 stocks to fetch data for
+stocks = ['TICKERS']  # List any number stocks to fetch data for
 start_date = '2000-01-01'  # Start date for data
 end_date = datetime.now().strftime('%Y-%m-%d')  # End date is set to current date
 
